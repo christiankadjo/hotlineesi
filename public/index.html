@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Hotline ESI</title>
+    <script src="/socket.io/socket.io.js"></script>
     <script src="dist/phaser.js"></script>
     <style type="text/css">
     body{
@@ -31,7 +32,7 @@
         var game = new Phaser.Game(config);
         var cube;
         var bullets;
-
+        var client = {};
         var fireRate = 100;
         var nextFire = 0;
 
@@ -44,6 +45,7 @@
 
         function create()
         {
+            client.socket = io.connect();
             this.add.image(400,300,'floor');
             cube = this.physics.add.sprite(400,300,'cube');
             cube.setCollideWorldBounds(true);
