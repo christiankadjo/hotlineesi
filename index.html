@@ -30,11 +30,16 @@
         };
         var game = new Phaser.Game(config);
         var cube;
+        var bullets;
+
+        var fireRate = 100;
+        var nextFire = 0;
 
         function preload()
         {
             this.load.image('floor', 'assets/floor.png');
             this.load.spritesheet('cube', 'assets/cube.png', {frameWidth:40, frameHeight:40});
+            this.load.image('bullet', 'assets/bullet.png');
         }
 
         function create()
@@ -42,12 +47,28 @@
             this.add.image(400,300,'floor');
             cube = this.physics.add.sprite(400,300,'cube');
             cube.setCollideWorldBounds(true);
+            cube.body.allowRotation = false;
+
+            bullets = this.add.group();
+            bullets.enableBody = true;
+            bullets.createMultiple(50, 'bullet');
+            // bullets.setAll('checkWorldBounds', true);
+            // bullets.setAll('outOfBoundsKill', true);
+            this.input.setDefaultCursor('url(assets/crosshair.png), pointer');
+
         }
 
         function update()
         {
+            // cube.rotation = this.physics.arcade.angleToPointer(cube);
             var cursors = this.input.keyboard.createCursorKeys();
+
             playerMovement(cursors);
+
+            this.input.on('pointermove',function(pointer){
+                angle = Phaser.Math.RAD_TO_DEG * Phaser.Math.Angle.Between(cube.x, cube.y, pointer.x, pointer.y);
+                cube.setAngle(angle);
+            }, this);
         }
 
         function playerMovement(cursors)
