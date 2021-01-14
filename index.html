@@ -49,12 +49,17 @@
             cube.setCollideWorldBounds(true);
             cube.body.allowRotation = false;
 
-            bullets = this.add.group();
-            bullets.enableBody = true;
-            bullets.createMultiple(50, 'bullet');
-            // bullets.setAll('checkWorldBounds', true);
-            // bullets.setAll('outOfBoundsKill', true);
+            //  bullets = this.physics.add.group({
+            //      defaultKey:'bullet',
+            //      maxSize:5
+            //  });
+
+            bullets = new BulletGroup(this);
             this.input.setDefaultCursor('url(assets/crosshair.png), pointer');
+
+            this.input.on('pointerdown', pointer => {
+                shoot(pointer);
+            });
 
         }
 
@@ -69,6 +74,8 @@
                 angle = Phaser.Math.RAD_TO_DEG * Phaser.Math.Angle.Between(cube.x, cube.y, pointer.x, pointer.y);
                 cube.setAngle(angle);
             }, this);
+
+            
         }
 
         function playerMovement(cursors)
@@ -101,6 +108,50 @@
             else
             {
                 cube.setVelocityY(0);
+            }
+        }
+
+        function shoot(pointer)
+        {
+            bullets.shoot(cube.x, cube.y -20)
+        }
+
+        class BulletGroup extends Phaser.Physics.Arcade.Group {
+            constructor(scene)
+            {
+                // Call the super constructor, passing in a world and a scene
+                super(scene.physics.world, scene);
+
+                // Initialize the group
+                this.createMultiple({
+                    classType:Bullet,
+                    frameQuantity: 10, //create 10 instances
+                    active: false,
+                    visible:false,
+                    key:'laser'
+                });
+            }
+
+            shoot(x,y)
+            {
+                const bullet = this.getFirstDead(false); //getFirstDead will get the first child of the group that is considered dead... ie: The .alive property is false...
+                if(bullet){
+                    bullet.shoot(x,y);
+                }
+            }
+        }
+
+        class Bullet extends Phaser.Physics.Arcade.Sprite{
+            constructor(scene, x, y) {
+                super(scene, x, y, 'bullet');
+            }
+
+            shoot(x,y)
+            {
+                this.body.reset(x,y);
+                this.setActive(true);
+                this.setVisible(true);
+                this.setVelocityY(-900);
             }
         }
     </script>
