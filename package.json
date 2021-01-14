@@ -1,0 +1,24 @@
+{
+  "name": "hotlineesi",
+  "version": "1.0.0",
+  "description": "![Phaser Header](https://phaser.io/images/github/300/phaser-header.png \"Phaser 3 Header Banner\")",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christiankadjo/hotlineesi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/christiankadjo/hotlineesi/issues"
+  },
+  "homepage": "https://github.com/christiankadjo/hotlineesi#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
