@@ -13,6 +13,10 @@
 </head>
 <body>
     <script>
+        const PLAYER_SPEED = 320;
+        const PROJECTILE_SPEED = 600;
+        const FIRERATE = 100;
+
         var config = {
             type: Phaser.Auto,
             width:800,
@@ -33,8 +37,9 @@
         var cube;
         var bullets;
         var client = {};
-        var fireRate = 100;
         var nextFire = 0;
+
+        var textDebug;
 
         function preload()
         {
@@ -59,39 +64,55 @@
             bullets = new BulletGroup(this);
             this.input.setDefaultCursor('url(assets/crosshair.png), pointer');
 
-            this.input.on('pointerdown', pointer => {
-                shoot(pointer);
-            });
+            text = this.add.text(10, 10, 'Debug', { font: '16px Courier', fill: '#00ff00' });
 
         }
 
         function update()
         {
+            var angle =0;
             // cube.rotation = this.physics.arcade.angleToPointer(cube);
             var cursors = this.input.keyboard.createCursorKeys();
 
             playerMovement(cursors);
 
             this.input.on('pointermove',function(pointer){
-                angle = Phaser.Math.RAD_TO_DEG * Phaser.Math.Angle.Between(cube.x, cube.y, pointer.x, pointer.y);
+                angle = Phaser.Math.RAD_TO_DEG * Phaser.Math.Angle.BetweenPoints(cube, pointer);
                 cube.setAngle(angle);
             }, this);
 
+
+            this.input.on('pointerdown', pointer => {
+                if(game.getTime()> nextFire)
+                {
+                    nextFire = game.getTime() + FIRERATE;
+                    var bullet = bullets.getFirstDead(false); //getFirstDead will get the first child of the group that is considered dead... ie: The .alive property is false...
+                    if(bullet){
+                        bullet.shoot(cube.x,cube.y);
+                        this.physics.velocityFromAngle(angle, PROJECTILE_SPEED, bullet.body.velocity);
+                    }
+                }
+            }, this);
+
+            //DEBUG
+            text.setText([
+                'getTime: ' + game.getTime(),
+                'nextFire: ' + nextFire
+            ]);
             
         }
+
 
         function playerMovement(cursors)
         {
             if(cursors.left.isDown)
             {
-                cube.setVelocityX(-160);
+                cube.setVelocityX(-PLAYER_SPEED);
             }
-
             else if(cursors.right.isDown)
             {
-                cube.setVelocityX(160);
+                cube.setVelocityX(PLAYER_SPEED);
             }
-
             else {
                 cube.setVelocityX(0);
             } 
@@ -99,23 +120,16 @@
             
             if(cursors.up.isDown)
             {
-                cube.setVelocityY(-160);
+                cube.setVelocityY(-PLAYER_SPEED);
             }
-
             else if(cursors.down.isDown)
             {
-                cube.setVelocityY(160);
+                cube.setVelocityY(PLAYER_SPEED);
             }
-
             else
             {
                 cube.setVelocityY(0);
             }
-        }
-
-        function shoot(pointer)
-        {
-            bullets.shoot(cube.x, cube.y -20)
         }
 
         class BulletGroup extends Phaser.Physics.Arcade.Group {
@@ -130,16 +144,8 @@
                     frameQuantity: 10, //create 10 instances
                     active: false,
                     visible:false,
-                    key:'laser'
+                    key:'bullet'
                 });
-            }
-
-            shoot(x,y)
-            {
-                const bullet = this.getFirstDead(false); //getFirstDead will get the first child of the group that is considered dead... ie: The .alive property is false...
-                if(bullet){
-                    bullet.shoot(x,y);
-                }
             }
         }
 
@@ -153,7 +159,6 @@
                 this.body.reset(x,y);
                 this.setActive(true);
                 this.setVisible(true);
-                this.setVelocityY(-900);
             }
         }
     </script>
