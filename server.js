@@ -50,6 +50,15 @@ io.on('connection', function (socket){
       socket.broadcast.emit('playerIsMoving', data);
     });
 
+    socket.on('stop', function(coord){
+      var data = {
+        id:socket.player.id,
+        x:coord.x,
+        y:coord.y
+      };
+      socket.broadcast.emit('playerStop', data);
+    });
+
 
     socket.on('disconnect', function(){
       console.log(socket.player.id, 'user disconnected');

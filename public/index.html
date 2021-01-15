@@ -95,9 +95,17 @@
             
 
             client.socket.on('playerIsMoving', data=>{
+
                 players[data.id].x = data.x;
                 players[data.id].y = data.y;
             });
+
+            client.socket.on('playerStop', data=>{
+
+                players[data.id].x = data.x;
+                players[data.id].y = data.y;
+            });
+            
         }
 
         function update()
@@ -173,7 +181,7 @@
                 else 
                 {
                     players[client.socket.id].setVelocityX(0);
-                    // client.socket.emit('playerMove', STOPX);
+                    client.socket.emit('stop', {x:players[client.socket.id].x, y:players[client.socket.id].y});
                     // cube.setVelocityX(0);
                 } 
             
@@ -193,7 +201,7 @@
                 else
                 {
                     players[client.socket.id].setVelocityY(0);
-                    // client.socket.emit('playerMove', STOPY);
+                    client.socket.emit('stop', {x:players[client.socket.id].x, y:players[client.socket.id].y});
                     // cube.setVelocityY(0);
                 }
             }
