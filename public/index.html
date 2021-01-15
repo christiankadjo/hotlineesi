@@ -17,6 +17,13 @@
         const PROJECTILE_SPEED = 600;
         const FIRERATE = 100;
 
+        const LEFT="left";
+        const RIGHT="right";
+        const UP="up";
+        const DOWN="down";
+        const STOPX="stopx";
+        const STOPY="stopy";
+
         var config = {
             type: Phaser.Auto,
             width:800,
@@ -34,13 +41,14 @@
             }
         };
         var game = new Phaser.Game(config);
+        var players = {};
         var cube;
         var bullets;
         var client = {};
         var nextFire = 0;
 
         var textDebug;
-
+        var cursors;
         function preload()
         {
             this.load.image('floor', 'assets/floor.png');
@@ -50,87 +58,148 @@
 
         function create()
         {
-            client.socket = io.connect();
             this.add.image(400,300,'floor');
-            cube = this.physics.add.sprite(400,300,'cube');
-            cube.setCollideWorldBounds(true);
-            cube.body.allowRotation = false;
+            // cube = this.physics.add.sprite(400,300,'cube');
+            // cube.setCollideWorldBounds(true);
+            // cube.body.allowRotation = false;
 
-            //  bullets = this.physics.add.group({
-            //      defaultKey:'bullet',
-            //      maxSize:5
-            //  });
-
-            bullets = new BulletGroup(this);
+            // bullets = new BulletGroup(this);
             this.input.setDefaultCursor('url(assets/crosshair.png), pointer');
 
             text = this.add.text(10, 10, 'Debug', { font: '16px Courier', fill: '#00ff00' });
 
+            client.socket = io.connect();
+            askNewPlayer();
+
+            client.socket.on('newplayer', data =>{
+                console.log("player");
+                
+                addNewPlayer(data.id,data.x,data.y, data.color, this)
+            });
+
+            client.socket.on('allplayers', data =>{
+                console.log("allplayers", data);
+                for(var i = 0; i < data.length; i++)
+                {
+                    addNewPlayer(data[i].id,data[i].x,data[i].y, data[i].color, this)
+                }
+                
+            });
+
+            client.socket.on('remove', id=>{
+                players[id].destroy();
+                delete players[id];
+            });
+
+            cursors = this.input.keyboard.createCursorKeys();
+            
+
+            client.socket.on('playerIsMoving', data=>{
+                players[data.id].x = data.x;
+                players[data.id].y = data.y;
+            });
         }
 
         function update()
         {
-            var angle =0;
-            // cube.rotation = this.physics.arcade.angleToPointer(cube);
-            var cursors = this.input.keyboard.createCursorKeys();
 
-            playerMovement(cursors);
+            playerMovementListener(cursors);
+            // var angle =0;
+            
 
-            this.input.on('pointermove',function(pointer){
-                angle = Phaser.Math.RAD_TO_DEG * Phaser.Math.Angle.BetweenPoints(cube, pointer);
-                cube.setAngle(angle);
-            }, this);
+            //playerMovement(cursors);
+
+            // this.input.on('pointermove',function(pointer){
+            //     angle = Phaser.Math.RAD_TO_DEG * Phaser.Math.Angle.BetweenPoints(cube, pointer);
+            //     cube.setAngle(angle);
+            // }, this);
 
 
-            this.input.on('pointerdown', pointer => {
-                if(game.getTime()> nextFire)
-                {
-                    nextFire = game.getTime() + FIRERATE;
-                    var bullet = bullets.getFirstDead(false); //getFirstDead will get the first child of the group that is considered dead... ie: The .alive property is false...
-                    if(bullet){
-                        bullet.shoot(cube.x,cube.y);
-                        this.physics.velocityFromAngle(angle, PROJECTILE_SPEED, bullet.body.velocity);
-                    }
-                }
-            }, this);
+            // this.input.on('pointerdown', pointer => {
+            //     if(game.getTime()> nextFire)
+            //     {
+            //         nextFire = game.getTime() + FIRERATE;
+            //         var bullet = bullets.getFirstDead(false); //getFirstDead will get the first child of the group that is considered dead... ie: The .alive property is false...
+            //         if(bullet){
+            //             bullet.shoot(cube.x,cube.y);
+            //             this.physics.velocityFromAngle(angle, PROJECTILE_SPEED, bullet.body.velocity);
+            //         }
+            //     }
+            // }, this);
 
-            //DEBUG
-            text.setText([
-                'getTime: ' + game.getTime(),
-                'nextFire: ' + nextFire
-            ]);
+            // //DEBUG
+            // text.setText([
+            //     'getTime: ' + game.getTime(),
+            //     'nextFire: ' + nextFire
+            // ]);
             
         }
 
 
-        function playerMovement(cursors)
+       
+
+        //#region CLIENTSOCKET
+        function askNewPlayer()
         {
-            if(cursors.left.isDown)
-            {
-                cube.setVelocityX(-PLAYER_SPEED);
-            }
-            else if(cursors.right.isDown)
-            {
-                cube.setVelocityX(PLAYER_SPEED);
-            }
-            else {
-                cube.setVelocityX(0);
-            } 
-            
-            
-            if(cursors.up.isDown)
-            {
-                cube.setVelocityY(-PLAYER_SPEED);
-            }
-            else if(cursors.down.isDown)
-            {
-                cube.setVelocityY(PLAYER_SPEED);
-            }
-            else
-            {
-                cube.setVelocityY(0);
-            }
+            client.socket.emit('newplayer');
         }
+
+        function addNewPlayer(id,x,y, color, scene)
+        {
+            
+            players[id] = scene.physics.add.sprite(x, y, 'cube');
+            players[id].setCollideWorldBounds(true);
+            players[id].body.allowRotation = false;
+            players[id].setTintFill(color);
+
+        }
+
+        function playerMovementListener(cursors)
+        {
+            if(players[client.socket.id])
+            {
+
+                if(cursors.left.isDown)
+                {
+                    players[client.socket.id].setVelocityX(-PLAYER_SPEED);
+                    client.socket.emit('keyPress', LEFT, {x:players[client.socket.id].x, y:players[client.socket.id].y});
+                }
+                else if(cursors.right.isDown)
+                {
+                    players[client.socket.id].setVelocityX(PLAYER_SPEED);
+                    client.socket.emit('keyPress', RIGHT, {x:players[client.socket.id].x, y:players[client.socket.id].y});
+                    // cube.setVelocityX(PLAYER_SPEED);
+                }
+                else 
+                {
+                    players[client.socket.id].setVelocityX(0);
+                    // client.socket.emit('playerMove', STOPX);
+                    // cube.setVelocityX(0);
+                } 
+            
+            
+                if(cursors.up.isDown)
+                {
+                    players[client.socket.id].setVelocityY(-PLAYER_SPEED);
+                    client.socket.emit('keyPress', UP, {x:players[client.socket.id].x, y:players[client.socket.id].y});
+                    // cube.setVelocityY(-PLAYER_SPEED);
+                }
+                else if(cursors.down.isDown)
+                {
+                    players[client.socket.id].setVelocityY(PLAYER_SPEED);
+                    client.socket.emit('keyPress', DOWN, {x:players[client.socket.id].x, y:players[client.socket.id].y});
+                    // cube.setVelocityY(PLAYER_SPEED);
+                }
+                else
+                {
+                    players[client.socket.id].setVelocityY(0);
+                    // client.socket.emit('playerMove', STOPY);
+                    // cube.setVelocityY(0);
+                }
+            }
+           
+        }
+        //#endregion
 
         class BulletGroup extends Phaser.Physics.Arcade.Group {
             constructor(scene)

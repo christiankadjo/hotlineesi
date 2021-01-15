@@ -11,13 +11,83 @@ app.get('/', function (req, res) {
  
 
 
-server.listen(8081, function () {
+server.listen(8081,'bework025', function () {
   console.log(`Listening on ${server.address().port}`);
 });
 
+server.colors = [
+  {color:0x641E16, id:null},
+  {color:0x512E5F, id:null},
+  {color:0x154360, id:null},
+  {color:0x0E6251, id:null},
+  {color:0x7D6608, id:null},
+  {color:0x1B2631, id:null}
+]
+
 io.on('connection', function (socket){
   console.log('a user connected');
-  socket.on('disconnect', function(){
-    console.log('user disconnected');
+
+  socket.on('newplayer', function(){
+    console.log(socket.id);
+    socket.player = {
+      id:socket.id,
+      x:randomInt(100,400),
+      y:randomInt(100,400),
+      color:server.colors.find(x=> x.id == null).color
+    };
+    var color_index = server.colors.indexOf(server.colors.find(x=>x.color == socket.player.color));
+    server.colors[color_index].id = socket.player.id;
+    socket.emit('allplayers', getAllPlayers());
+    socket.broadcast.emit('newplayer',socket.player);
+
+    socket.on('keyPress', function(direction, coord){
+      //la direction servira à savoir de quel coté regarde le joueur
+      var data = {
+        id:socket.player.id,
+        x:coord.x,
+        y:coord.y
+      };
+      socket.broadcast.emit('playerIsMoving', data);
+    });
+
+
+    socket.on('disconnect', function(){
+      console.log(socket.player.id, 'user disconnected');
+      io.emit('remove', socket.player.id);
+      var color_index = server.colors.indexOf(server.colors.find(x=>x.color == socket.player.color));
+      server.colors[color_index].id = null;
+    });
   });
+  
+
 });
+
+function getAllPlayers()
+{
+  var players = [];
+  io.of('/').sockets.forEach(element => {
+    if(element.player)
+    {
+      players.push(element.player);
+    }
+  });
+  // const ids = await io.allSockets();
+  // ids.forEach(id => {
+  //   var player = io.of('/').sockets.get(id).player;
+  //   if(player)
+  //   {
+  //     players.push(player);
+  //   }
+  // });
+  return players;
+}
+
+async function deletePlayer()
+{
+
+}
+
+function randomInt(low, high)
+{
+  return Math.floor(Math.random() * (high - low) + low);
+}
