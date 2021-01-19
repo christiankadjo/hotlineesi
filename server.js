@@ -11,7 +11,7 @@ app.get('/', function (req, res) {
  
 
 
-server.listen(8081,'localhost', function () {
+server.listen(8081,'bework025', function () {
   console.log(`Listening on ${server.address().port}`);
 });
 
@@ -27,23 +27,25 @@ server.colors = [
 io.on('connection', function (socket){
   console.log('a user connected');
 
-  socket.on('newplayer', function(){
+  socket.on('newplayer', function(coord){
     console.log(socket.id);
-    socket.player = {
-      id:socket.id,
-      x:randomInt(100,400),
-      y:randomInt(100,400),
-      color:server.colors.find(x=> x.id == null).color
-    };
-    var color_index = server.colors.indexOf(server.colors.find(x=>x.color == socket.player.color));
-    server.colors[color_index].id = socket.player.id;
+    // socket.player = {
+    //   id:socket.id,
+    //   x:randomInt(100,400),
+    //   y:randomInt(100,400),
+    //   color:server.colors.find(x=> x.id == null).color
+    // };
+
+    socket.player = new Player(socket.id, getColor(), coord.x, coord.y);
+    var color_index = server.colors.indexOf(server.colors.find(x=>x.color == socket.player.Color));
+    server.colors[color_index].id = socket.player.ID;
     socket.emit('allplayers', getAllPlayers());
     socket.broadcast.emit('newplayer',socket.player);
 
     socket.on('keyPress', function(direction, coord){
       //la direction servira à savoir de quel coté regarde le joueur
       var data = {
-        id:socket.player.id,
+        id:socket.player.ID,
         x:coord.x,
         y:coord.y
       };
@@ -52,7 +54,7 @@ io.on('connection', function (socket){
 
     socket.on('stop', function(coord){
       var data = {
-        id:socket.player.id,
+        id:socket.player.ID,
         x:coord.x,
         y:coord.y
       };
@@ -61,9 +63,9 @@ io.on('connection', function (socket){
 
 
     socket.on('disconnect', function(){
-      console.log(socket.player.id, 'user disconnected');
-      io.emit('remove', socket.player.id);
-      var color_index = server.colors.indexOf(server.colors.find(x=>x.color == socket.player.color));
+      console.log(socket.player.ID, 'user disconnected');
+      io.emit('remove', socket.player.ID);
+      var color_index = server.colors.indexOf(server.colors.find(x=>x.color == socket.player.Color));
       server.colors[color_index].id = null;
     });
   });
@@ -91,12 +93,31 @@ function getAllPlayers()
   return players;
 }
 
-async function deletePlayer()
-{
-
-}
 
 function randomInt(low, high)
 {
   return Math.floor(Math.random() * (high - low) + low);
+}
+
+function getColor()
+{
+  return server.colors.find(x=> x.id == null).color;
+}
+
+class Player{
+  // var ID = null;
+  // Poobar = null;
+  // Name = null;
+  // Color = null;
+  // X = null;
+  // Y = null;
+  constructor(id,color,x = 0, y = 0)
+  {
+    this.ID = id;
+    this.Poobar = 100;
+    this.Name = "";
+    this.Color = color;
+    this.X = x;
+    this.Y = y;
+  }
 }

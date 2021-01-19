@@ -46,6 +46,7 @@
         var bullets;
         var client = {};
         var nextFire = 0;
+        var Poochecker;
 
         var textDebug;
         var cursors;
@@ -64,24 +65,35 @@
             // cube.body.allowRotation = false;
 
             // bullets = new BulletGroup(this);
-            this.input.setDefaultCursor('url(assets/crosshair.png), pointer');
+            //this.input.setDefaultCursor('url(assets/crosshair.png), pointer');
 
             text = this.add.text(10, 10, 'Debug', { font: '16px Courier', fill: '#00ff00' });
 
             client.socket = io.connect();
-            askNewPlayer();
+            //askNewPlayer();
+
+            this.input.on('pointerdown', pointer =>{
+                if(!players[client.socket.id])
+                {
+                    askNewPlayer(pointer.x, pointer.y);
+                }
+                else
+                {
+
+                }
+            });
 
             client.socket.on('newplayer', data =>{
                 console.log("player");
                 
-                addNewPlayer(data.id,data.x,data.y, data.color, this)
+                addNewPlayer(data, this);
             });
 
             client.socket.on('allplayers', data =>{
                 console.log("allplayers", data);
                 for(var i = 0; i < data.length; i++)
                 {
-                    addNewPlayer(data[i].id,data[i].x,data[i].y, data[i].color, this)
+                    addNewPlayer(data[i], this)
                 }
                 
             });
@@ -101,9 +113,12 @@
             });
 
             client.socket.on('playerStop', data=>{
-
-                players[data.id].x = data.x;
-                players[data.id].y = data.y;
+                if(players[data.id])
+                {
+                    players[data.id].x = data.x;
+                    players[data.id].y = data.y;
+                }
+                
             });
             
         }
@@ -135,32 +150,53 @@
             //     }
             // }, this);
 
-            // //DEBUG
-            // text.setText([
-            //     'getTime: ' + game.getTime(),
-            //     'nextFire: ' + nextFire
-            // ]);
-            
+
+            //DEBUG
+            text.setText([
+                'Cliquez pour spawn'
+                //'nextFire: ' + nextFire
+            ]);
+
+            if(players[client.socket.id]){
+                text.setText([
+                'Barre de merde: ' + players[client.socket.id].player.Poobar
+            ]);
+            }
         }
 
 
        
 
         //#region CLIENTSOCKET
-        function askNewPlayer()
+        function askNewPlayer(x,y)
         {
-            client.socket.emit('newplayer');
+            client.socket.emit('newplayer', {x:x, y:y});
         }
 
-        function addNewPlayer(id,x,y, color, scene)
+        function addNewPlayer(data, scene)
         {
             
-            players[id] = scene.physics.add.sprite(x, y, 'cube');
-            players[id].setCollideWorldBounds(true);
-            players[id].body.allowRotation = false;
-            players[id].setTintFill(color);
+            players[data.ID] = scene.physics.add.sprite(data.X, data.Y, 'cube');
+            players[data.ID].setCollideWorldBounds(true);
+            players[data.ID].body.allowRotation = false;
+            players[data.ID].setTintFill(data.Color);
+            players[data.ID].player = data;
+
+            //SE DECLENCHE QUAND L'ID DU JOUEUR EST CELUI DE LA SOCKET, DONC C'EST TOI LA DERRIERE L'ECRAN QUI JOUE. PAS LES AUTRES JOUEURS. CA NE DOIT ARRIVER QU'UNE FOIS
+            if(data.ID == client.socket.id)
+            {
+                Poochecker= setInterval(()=>{
+                    players[data.ID].player.Poobar -= 10;
+                    if(players[data.ID].player.Poobar <= 0)
+                    {
+                        clearInterval(Poochecker);
+                    }
+                },5000);
+                
+            }
 
         }
+
 
         function playerMovementListener(cursors)
         {
