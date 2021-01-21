@@ -42,24 +42,29 @@
         };
         var game = new Phaser.Game(config);
         var players = {};
+        var toilet;
         var cube;
         var bullets;
         var client = {};
         var nextFire = 0;
         var Poochecker;
-
+        var toiletAvailable;
         var textDebug;
         var cursors;
         function preload()
         {
             this.load.image('floor', 'assets/floor.png');
             this.load.spritesheet('cube', 'assets/cube.png', {frameWidth:40, frameHeight:40});
-            this.load.image('bullet', 'assets/bullet.png');
+            this.load.image('toilet', 'assets/toilet.png');
         }
 
         function create()
         {
             this.add.image(400,300,'floor');
+            toilet = this.physics.add.staticSprite(400,500,'toilet');
+            toilet.name = "toilet";
+            //toilet.setTintFill(0x7D6608);
+            toilet.setInteractive();
             // cube = this.physics.add.sprite(400,300,'cube');
             // cube.setCollideWorldBounds(true);
             // cube.body.allowRotation = false;
@@ -71,6 +76,8 @@
 
             client.socket = io.connect();
             //askNewPlayer();
+
+            this.input.on('gameobjectdown', onObjectClicked);
 
             this.input.on('pointerdown', pointer =>{
                 if(!players[client.socket.id])
@@ -91,10 +98,12 @@
 
             client.socket.on('allplayers', data =>{
                 console.log("allplayers", data);
-                for(var i = 0; i < data.length; i++)
+                for(var i = 0; i < data.players.length; i++)
                 {
-                    addNewPlayer(data[i], this)
+                    addNewPlayer(data.players[i], this)
                 }
+
+                toiletAvailable = data.toiletAvailable;
                 
             });
 
@@ -120,6 +129,10 @@
                 }
                 
             });
+
+            client.socket.on('toiletAvailable', available=>{
+                toiletAvailable = available;
+            });
             
         }
 
@@ -127,6 +140,7 @@
         {
 
             playerMovementListener(cursors);
+            toiletListener();
             // var angle =0;
             
 
@@ -175,23 +189,33 @@
 
         function addNewPlayer(data, scene)
         {
-            
             players[data.ID] = scene.physics.add.sprite(data.X, data.Y, 'cube');
             players[data.ID].setCollideWorldBounds(true);
             players[data.ID].body.allowRotation = false;
             players[data.ID].setTintFill(data.Color);
             players[data.ID].player = data;
 
+            scene.physics.add.collider(players[data.ID],toilet);
+
             //SE DECLENCHE QUAND L'ID DU JOUEUR EST CELUI DE LA SOCKET, DONC C'EST TOI LA DERRIERE L'ECRAN QUI JOUE. PAS LES AUTRES JOUEURS. CA NE DOIT ARRIVER QU'UNE FOIS
             if(data.ID == client.socket.id)
             {
-                Poochecker= setInterval(()=>{
-                    players[data.ID].player.Poobar -= 10;
-                    if(players[data.ID].player.Poobar <= 0)
-                    {
-                        clearInterval(Poochecker);
-                    }
-                },5000);
+                // Poochecker= setInterval(()=>{
+                //     if(100 - players[data.ID].player.Poobar >= 5)
+                //     {
+                //         players[data.ID].player.Poobar += 5;
+                //     }
+                //     else
+                //     {
+                //         players[data.ID].player.Poobar += 100 - players[data.ID].player.Poobar
+                //     }
+                    
+                //     if(players[data.ID].player.Poobar == 100)
+                //     {
+                //         clearInterval(Poochecker);
+                //     }
+                // },5000);
+                launchPooChecker();
                 
             }
 
@@ -242,6 +266,69 @@
                 }
             }
            
+        }
+
+        function toiletListener()
+        {
+            if(players[client.socket.id])
+            {
+                toiletAvailable == true?  toilet.setTint(0xffffff):toilet.setTint(0xff0000);
+            }
+        }
+
+        function onObjectClicked(pointer, gameObject)
+        {
+            if(gameObject.name ="toilet")
+            {
+                if(toiletAvailable)
+                {
+                    startPoo();
+                }
+                
+            }
+            
+        }
+
+        function startPoo()
+        {
+            clearInterval(Poochecker);
+            client.socket.emit('usingTheToilet',true);
+            Poochecker = setInterval(()=>{
+                    if(players[client.socket.id].player.Poobar - 20 >= 0)
+                    {
+                        players[client.socket.id].player.Poobar -= 20;
+                    }
+                    else
+                    {
+                        players[client.socket.id].player.Poobar = 0
+                    }
+                    
+                    if(players[client.socket.id].player.Poobar == 0)
+                    {
+                        clearInterval(Poochecker);
+                        client.socket.emit('usingTheToilet',false);
+                        launchPooChecker();
+                    }
+                },2000);
+        }
+
+        function launchPooChecker()
+        {
+            Poochecker = setInterval(()=>{
+                    if(100 - players[client.socket.id].player.Poobar >= 5)
+                    {
+                        players[client.socket.id].player.Poobar += 5;
+                    }
+                    else
+                    {
+                        players[client.socket.id].player.Poobar += 100 - players[client.socket.id].player.Poobar
+                    }
+                    
+                    if(players[client.socket.id].player.Poobar == 100)
+                    {
+                        clearInterval(Poochecker);
+                    }
+                },5000);
         }
         //#endregion
 

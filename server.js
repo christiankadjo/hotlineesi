@@ -3,6 +3,8 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 
+var toiletAvailable = true;
+
 app.use(express.static(__dirname + '/public'));
  
 app.get('/', function (req, res) {
@@ -25,10 +27,10 @@ server.colors = [
 ]
 
 io.on('connection', function (socket){
-  console.log('a user connected');
+  console.log('a user connected from ', socket.handshake.address);
 
   socket.on('newplayer', function(coord){
-    console.log(socket.id);
+    console.log('player with id ', socket.id, 'from ', socket.handshake.address,  'just spawn');
     // socket.player = {
     //   id:socket.id,
     //   x:randomInt(100,400),
@@ -39,7 +41,7 @@ io.on('connection', function (socket){
     socket.player = new Player(socket.id, getColor(), coord.x, coord.y);
     var color_index = server.colors.indexOf(server.colors.find(x=>x.color == socket.player.Color));
     server.colors[color_index].id = socket.player.ID;
-    socket.emit('allplayers', getAllPlayers());
+    socket.emit('allplayers', {players:getAllPlayers(), toiletAvailable:toiletAvailable});
     socket.broadcast.emit('newplayer',socket.player);
 
     socket.on('keyPress', function(direction, coord){
@@ -61,6 +63,12 @@ io.on('connection', function (socket){
       socket.broadcast.emit('playerStop', data);
     });
 
+    socket.on('usingTheToilet', function(toiletIsUsed){
+      console.log('player with id ', socket.id, 'from ', socket.handshake.address,  'interact with toilet: ', toiletIsUsed);
+      toiletAvailable = !toiletIsUsed;
+      socket.emit('toiletAvailable',toiletAvailable);
+      socket.broadcast.emit('toiletAvailable',toiletAvailable);
+    });
 
     socket.on('disconnect', function(){
       console.log(socket.player.ID, 'user disconnected');
@@ -114,7 +122,7 @@ class Player{
   constructor(id,color,x = 0, y = 0)
   {
     this.ID = id;
-    this.Poobar = 100;
+    this.Poobar = 0;
     this.Name = "";
     this.Color = color;
     this.X = x;
