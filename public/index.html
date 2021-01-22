@@ -60,7 +60,9 @@
 
         function create()
         {
-            this.add.image(400,300,'floor');
+            this.cameras.main.setBounds(0,0,1366,768)
+            this.physics.world.setBounds(0,0,1366,768);
+            this.add.image(683,384,'floor');
             toilet = this.physics.add.staticSprite(400,500,'toilet');
             toilet.name = "toilet";
             //toilet.setTintFill(0x7D6608);
@@ -200,6 +202,7 @@
             //SE DECLENCHE QUAND L'ID DU JOUEUR EST CELUI DE LA SOCKET, DONC C'EST TOI LA DERRIERE L'ECRAN QUI JOUE. PAS LES AUTRES JOUEURS. CA NE DOIT ARRIVER QU'UNE FOIS
             if(data.ID == client.socket.id)
             {
+                scene.cameras.main.startFollow(players[data.ID], true,0.05,0.05);
                 // Poochecker= setInterval(()=>{
                 //     if(100 - players[data.ID].player.Poobar >= 5)
                 //     {
@@ -215,6 +218,7 @@
                 //         clearInterval(Poochecker);
                 //     }
                 // },5000);
+                
                 launchPooChecker();
                 
             }
