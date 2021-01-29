@@ -31,7 +31,7 @@ io.on('connection', function (socket){
   console.log('a user connected from ', socket.handshake.address);
 
   socket.on('newplayer', function(coord){
-    console.log('player with id ', socket.id, 'from ', socket.handshake.address,  'just spawn');
+    console.log(coord.name, 'just spawn');
     // socket.player = {
     //   id:socket.id,
     //   x:randomInt(100,400),
@@ -39,7 +39,7 @@ io.on('connection', function (socket){
     //   color:server.colors.find(x=> x.id == null).color
     // };
 
-    socket.player = new Player(socket.id, getColor(), coord.x, coord.y);
+    socket.player = new Player(socket.id, coord.name, getColor(), coord.x, coord.y);
     var color_index = server.colors.indexOf(server.colors.find(x=>x.color == socket.player.Color));
     server.colors[color_index].id = socket.player.ID;
     socket.emit('allplayers', {players:getAllPlayers(), toiletAvailable:toiletAvailable});
@@ -50,7 +50,8 @@ io.on('connection', function (socket){
       var data = {
         id:socket.player.ID,
         x:coord.x,
-        y:coord.y
+        y:coord.y,
+        direction:direction
       };
       socket.broadcast.emit('playerIsMoving', data);
     });
@@ -120,11 +121,11 @@ class Player{
   // Color = null;
   // X = null;
   // Y = null;
-  constructor(id,color,x = 0, y = 0)
+  constructor(id,name,color,x = 0, y = 0)
   {
     this.ID = id;
     this.Poobar = 0;
-    this.Name = "";
+    this.Name = name;
     this.Color = color;
     this.X = x;
     this.Y = y;
