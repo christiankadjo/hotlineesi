@@ -10,8 +10,9 @@ window.onload= function(){
         physics: {
             default: 'arcade',
             arcade: {
-    
-            }
+                debug:true
+            },
+            pixelArt:true
         },
         scene:[BootScene,LobbyScene]
     };

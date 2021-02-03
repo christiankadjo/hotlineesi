@@ -20,6 +20,20 @@ export class LobbyScene extends Phaser.Scene {
     text;
     cursors;
     decrement = 20;
+    frames = [
+        { key: 'human', frame: "walkcolor0001.png" },
+        { key: 'human', frame: "walkcolor0002.png" },
+        { key: 'human', frame: "walkcolor0003.png" },
+        { key: 'human', frame: "walkcolor0004.png" },
+        { key: 'human', frame: "walkcolor0005.png" },
+        { key: 'human', frame: "walkcolor0006.png" },
+        { key: 'human', frame: "walkcolor0007.png" },
+        { key: 'human', frame: "walkcolor0008.png" },
+        { key: 'human', frame: "walkcolor0009.png" },
+        { key: 'human', frame: "walkcolor0010.png" },
+        { key: 'human', frame: "walkcolor0011.png" },
+        { key: 'human', frame: "walkcolor0012.png" },
+    ];
 
     preload() {
         this.load.image('floor', 'assets/floor.png');
@@ -41,80 +55,28 @@ export class LobbyScene extends Phaser.Scene {
 
         this.anims.create({
             key: 'walk_left',
-            frames: [
-                { key: 'human', frame: "walkcolor0001.png" },
-                { key: 'human', frame: "walkcolor0002.png" },
-                { key: 'human', frame: "walkcolor0003.png" },
-                { key: 'human', frame: "walkcolor0004.png" },
-                { key: 'human', frame: "walkcolor0005.png" },
-                { key: 'human', frame: "walkcolor0006.png" },
-                { key: 'human', frame: "walkcolor0007.png" },
-                { key: 'human', frame: "walkcolor0008.png" },
-                { key: 'human', frame: "walkcolor0009.png" },
-                { key: 'human', frame: "walkcolor0010.png" },
-                { key: 'human', frame: "walkcolor0011.png" },
-                { key: 'human', frame: "walkcolor0012.png" },
-            ],
+            frames: this.frames,
             framerate: 10,
             repeat: -1
         });
 
         this.anims.create({
             key: 'walk_right',
-            frames: [
-                { key: 'human', frame: "walkcolor0001.png" },
-                { key: 'human', frame: "walkcolor0002.png" },
-                { key: 'human', frame: "walkcolor0003.png" },
-                { key: 'human', frame: "walkcolor0004.png" },
-                { key: 'human', frame: "walkcolor0005.png" },
-                { key: 'human', frame: "walkcolor0006.png" },
-                { key: 'human', frame: "walkcolor0007.png" },
-                { key: 'human', frame: "walkcolor0008.png" },
-                { key: 'human', frame: "walkcolor0009.png" },
-                { key: 'human', frame: "walkcolor0010.png" },
-                { key: 'human', frame: "walkcolor0011.png" },
-                { key: 'human', frame: "walkcolor0012.png" },
-            ],
+            frames: this.frames,
             framerate: 10,
             repeat: -1
         });
 
         this.anims.create({
             key: 'walk_up',
-            frames: [
-                { key: 'human', frame: "walkcolor0001.png" },
-                { key: 'human', frame: "walkcolor0002.png" },
-                { key: 'human', frame: "walkcolor0003.png" },
-                { key: 'human', frame: "walkcolor0004.png" },
-                { key: 'human', frame: "walkcolor0005.png" },
-                { key: 'human', frame: "walkcolor0006.png" },
-                { key: 'human', frame: "walkcolor0007.png" },
-                { key: 'human', frame: "walkcolor0008.png" },
-                { key: 'human', frame: "walkcolor0009.png" },
-                { key: 'human', frame: "walkcolor0010.png" },
-                { key: 'human', frame: "walkcolor0011.png" },
-                { key: 'human', frame: "walkcolor0012.png" },
-            ],
+            frames: this.frames,
             framerate: 10,
             repeat: -1
         });
 
         this.anims.create({
             key: 'walk_down',
-            frames: [
-                { key: 'human', frame: "walkcolor0001.png" },
-                { key: 'human', frame: "walkcolor0002.png" },
-                { key: 'human', frame: "walkcolor0003.png" },
-                { key: 'human', frame: "walkcolor0004.png" },
-                { key: 'human', frame: "walkcolor0005.png" },
-                { key: 'human', frame: "walkcolor0006.png" },
-                { key: 'human', frame: "walkcolor0007.png" },
-                { key: 'human', frame: "walkcolor0008.png" },
-                { key: 'human', frame: "walkcolor0009.png" },
-                { key: 'human', frame: "walkcolor0010.png" },
-                { key: 'human', frame: "walkcolor0011.png" },
-                { key: 'human', frame: "walkcolor0012.png" },
-            ],
+            frames: this.frames,
             framerate: 10,
             repeat: -1
         });
@@ -128,8 +90,8 @@ export class LobbyScene extends Phaser.Scene {
         this.client.socket = io.connect();
         this.askNewPlayer(300, 300, data.name);
 
-        this.input.on('gameobjectdown', (pointer,object)=>{
-            this.onObjectClicked(pointer,object);
+        this.input.on('gameobjectdown', (pointer, object) => {
+            this.onObjectClicked(pointer, object);
         });
 
 
@@ -164,19 +126,19 @@ export class LobbyScene extends Phaser.Scene {
 
 
                 if (data.direction == Constant.RIGHT) {
-                    this.players[data.id].anims.play('walk_right', true);
-                    this.players[data.id].resetFlip();
+                    this.players[data.id].list[0].anims.play('walk_right', true);
+                    this.players[data.id].list[0].resetFlip();
                 }
 
                 else if (data.direction == Constant.LEFT) {
-                    this.players[data.id].anims.play('walk_left', true);
-                    this.players[data.id].flipX = true;
+                    this.players[data.id].list[0].anims.play('walk_left', true);
+                    this.players[data.id].list[0].flipX = true;
                 }
                 else if (data.direction == Constant.UP) {
-                    this.players[data.id].anims.play('walk_up', true);
+                    this.players[data.id].list[0].anims.play('walk_up', true);
                 }
                 else {
-                    this.players[data.id].anims.play('walk_down', true);
+                    this.players[data.id].list[0].anims.play('walk_down', true);
                 }
 
                 this.players[data.id].x = data.x;
@@ -187,7 +149,7 @@ export class LobbyScene extends Phaser.Scene {
 
         this.client.socket.on('playerStop', data => {
             if (this.players[data.id]) {
-                this.players[data.id].anims.play('stop');
+                this.players[data.id].list[0].anims.play('stop');
                 this.players[data.id].x = data.x;
                 this.players[data.id].y = data.y;
             }
@@ -224,28 +186,38 @@ export class LobbyScene extends Phaser.Scene {
 
     //#region CLIENTSOCKET
     askNewPlayer(x, y, name) {
-        this.client.socket.emit('newplayer', { x: x, y: y, name:name});
+        this.client.socket.emit('newplayer', { x: x, y: y, name: name });
     }
 
     addNewPlayer(data, scene) {
-        //var playerName = scene.add.text(data.X, data.Y, data.Name, {font: "16px Arial", fill: "#ffffff"});
-        this.players[data.ID] = scene.physics.add.sprite(data.X, data.Y, 'human');
-        this.players[data.ID].setCollideWorldBounds(true);
+        var container = scene.add.container(data.X, data.Y);
+        var playerName = scene.add.text(0, 0, data.Name, { font: "20px Luminari", fill: "#ffffff" });
+        playerName.setOrigin(0.5, 4);
+        var player = scene.physics.add.sprite(0, 0, 'human');
+        //this.players[data.ID] = scene.physics.add.sprite(data.X, data.Y, 'human');
+        player.setCollideWorldBounds(true);
+        player.setTint(data.Color);
+        container.add(player);
+        container.add(playerName);
+        container.setSize(85, 100);
+        scene.physics.world.enable(container);
+        container.body.setCollideWorldBounds(true);
+        this.players[data.ID] = container;
+        this.players[data.ID].player = data;
         // players[data.ID].body.allowRotation = false;
         // players[data.ID].setTintFill(data.Color);
-        this.players[data.ID].setTint(data.Color);
+
         //this.players[data.ID].addChild(playerName);
-        this.players[data.ID].player = data;
-        this.players[data.ID].tween = scene.tweens.add({
-            targets: this.players[data.ID],
-            x: data.X,
-            y: data.Y,
-            ease: 'Linear',
-            duration: 1000
-        });
+
+        // this.players[data.ID].tween = scene.tweens.add({
+        //     targets: this.players[data.ID],
+        //     x: data.X,
+        //     y: data.Y,
+        //     ease: 'Linear',
+        //     duration: 1000
+        // });
 
         scene.physics.add.collider(this.players[data.ID], this.toilet);
-
         //SE DECLENCHE QUAND L'ID DU JOUEUR EST CELUI DE LA SOCKET, DONC C'EST TOI LA DERRIERE L'ECRAN QUI JOUE. PAS LES AUTRES JOUEURS. CA NE DOIT ARRIVER QU'UNE FOIS
         if (data.ID == this.client.socket.id) {
             scene.cameras.main.startFollow(this.players[data.ID], true);
@@ -259,34 +231,46 @@ export class LobbyScene extends Phaser.Scene {
     playerMovementListener(cursors) {
         if (this.players[this.client.socket.id]) {
 
-            if (cursors.left.isDown) {
-                this.players[this.client.socket.id].body.velocity.x = -Constant.PLAYER_SPEED;
-                this.players[this.client.socket.id].flipX = true;
-                this.players[this.client.socket.id].anims.play('walk_left', true);
-                this.client.socket.emit('keyPress', Constant.LEFT, { x: this.players[this.client.socket.id].x, y: this.players[this.client.socket.id].y });
-            }
-            else if (cursors.right.isDown) {
-                this.players[this.client.socket.id].body.velocity.x = Constant.PLAYER_SPEED;
-                this.players[this.client.socket.id].resetFlip();
-                this.players[this.client.socket.id].anims.play('walk_right', true);
-                this.client.socket.emit('keyPress', Constant.RIGHT, { x: this.players[this.client.socket.id].x, y: this.players[this.client.socket.id].y });
-            }
+            if (cursors.left.isDown || cursors.right.isDown || cursors.up.isDown || cursors.down.isDown) {
+                if (cursors.left.isDown) {
+                    this.players[this.client.socket.id].body.velocity.x = -Constant.PLAYER_SPEED;
+                    this.players[this.client.socket.id].list[0].flipX = true;
+                    this.players[this.client.socket.id].list[0].anims.play('walk_left', true);
+                    this.client.socket.emit('keyPress', Constant.LEFT, { x: this.players[this.client.socket.id].x, y: this.players[this.client.socket.id].y });
+                }
+                if (cursors.right.isDown) {
+                    this.players[this.client.socket.id].body.velocity.x = Constant.PLAYER_SPEED;
+                    this.players[this.client.socket.id].list[0].resetFlip();
+                    this.players[this.client.socket.id].list[0].anims.play('walk_right', true);
+                    this.client.socket.emit('keyPress', Constant.RIGHT, { x: this.players[this.client.socket.id].x, y: this.players[this.client.socket.id].y });
+                }
 
 
-            else if (cursors.up.isDown) {
-                this.players[this.client.socket.id].body.velocity.y = -Constant.PLAYER_SPEED;
-                this.players[this.client.socket.id].anims.play('walk_up', true);
-                this.client.socket.emit('keyPress', Constant.UP, { x: this.players[this.client.socket.id].x, y: this.players[this.client.socket.id].y });
+                if (cursors.up.isDown) {
+                    this.players[this.client.socket.id].body.velocity.y = -Constant.PLAYER_SPEED;
+                    if(!cursors.left.isDown && !cursors.right.isDown)
+                    {
+                        this.players[this.client.socket.id].list[0].anims.play('walk_up', true);
+                    }
+                    
+                    this.client.socket.emit('keyPress', Constant.UP, { x: this.players[this.client.socket.id].x, y: this.players[this.client.socket.id].y });
+                }
+
+                if (cursors.down.isDown) {
+                    this.players[this.client.socket.id].body.velocity.y = Constant.PLAYER_SPEED;
+                    if(!cursors.left.isDown && !cursors.right.isDown)
+                    {
+                        this.players[this.client.socket.id].list[0].anims.play('walk_down', true);
+                    }
+                    
+                    this.client.socket.emit('keyPress', Constant.DOWN, { x: this.players[this.client.socket.id].x, y: this.players[this.client.socket.id].y });
+                }
             }
-            else if (cursors.down.isDown) {
-                this.players[this.client.socket.id].body.velocity.y = Constant.PLAYER_SPEED;
-                this.players[this.client.socket.id].anims.play('walk_down', true);
-                this.client.socket.emit('keyPress', Constant.DOWN, { x: this.players[this.client.socket.id].x, y: this.players[this.client.socket.id].y });
-            }
+
             else {
                 this.players[this.client.socket.id].body.velocity.x = 0;
                 this.players[this.client.socket.id].body.velocity.y = 0;
-                this.players[this.client.socket.id].anims.play('stop');
+                this.players[this.client.socket.id].list[0].anims.play('stop');
                 this.client.socket.emit('stop', { x: this.players[this.client.socket.id].x, y: this.players[this.client.socket.id].y });
             }
         }
@@ -299,9 +283,9 @@ export class LobbyScene extends Phaser.Scene {
         }
     }
 
-    onObjectClicked(pointer, gameObject,yolo) {
+    onObjectClicked(pointer, gameObject, yolo) {
         if (gameObject.name = "toilet") {
-            
+
             if (this.toiletAvailable) {
                 this.startPoo();
             }
@@ -311,7 +295,7 @@ export class LobbyScene extends Phaser.Scene {
     }
 
     startPoo() {
-        
+
         clearInterval(this.Poochecker);
         this.client.socket.emit('usingTheToilet', true);
         this.Poochecker = setInterval(() => {
