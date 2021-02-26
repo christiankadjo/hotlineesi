@@ -6,10 +6,11 @@ window.onload= function(){
     var config = {
         type: Phaser.Auto,
         width: 800,
-        height: 600,
+        height: 640,
         physics: {
             default: 'arcade',
             arcade: {
+                gravity: {y:0},
                 debug:true
             },
             pixelArt:true

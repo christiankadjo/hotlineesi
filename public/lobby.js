@@ -35,19 +35,57 @@ export class LobbyScene extends Phaser.Scene {
         { key: 'human', frame: "walkcolor0012.png" },
     ];
 
+    map;
+    tileset;
+    tileset2;
+    under;
+    floor;
+    world;
+    above
+
     preload() {
         this.load.image('floor', 'assets/floor.png');
-        this.load.image('toilet', 'assets/toilet.png');
+        //this.load.image('toilet', 'assets/toilet.png');
         this.load.atlas('human', 'assets/player.png', "assets/player.json");
+        // this.load.image('tiles', 'assets/tileset.png');
+        this.load.image('office', 'assets/office.png');
+        this.load.image('interior', 'assets/interior.png');
+        // this.load.tilemapTiledJSON("lobbyscenemap",'assets/lobby.json');
+        this.load.tilemapTiledJSON("officescenemap",'assets/office.json');
     }
 
     create(data) {
-        this.cameras.main.setBounds(0, 0, 1366, 768)
-        this.physics.world.setBounds(0, 0, 1366, 768);
-        this.add.image(683, 384, 'floor');
-        this.toilet = this.physics.add.staticSprite(400, 500, 'toilet');
-        this.toilet.name = "toilet";
-        this.toilet.setInteractive();
+        
+        //this.add.image(683, 384, 'floor');
+        //this.toilet = this.physics.add.staticSprite(400, 500, 'toilet');
+        //this.toilet.name = "toilet";
+        //this.toilet.setInteractive();
+
+        // this.map = this.make.tilemap({key:"lobbyscenemap"});
+        // this.tileset = this.map.addTilesetImage("tileset", "tiles");
+        // this.floor = this.map.createStaticLayer("floor", this.tileset, 0, 0);
+        // this.world = this.map.createStaticLayer("world", this.tileset, 0, 0);
+        // this.world.setCollisionByProperty({collides: true });
+
+        this.map = this.make.tilemap({key:"officescenemap"});
+        this.cameras.main.setBounds(0, 0, 3600, 2500);
+        this.physics.world.setBounds(0, 0, 3600, 2500);
+        this.tileset = this.map.addTilesetImage("office", "office");
+        this.tileset2 = this.map.addTilesetImage("interior", "interior");
+
+        const layers = [this.tileset, this.tileset2];
+        this.under = this.map.createLayer("under", layers, 0, 0);
+        this.floor = this.map.createLayer("floor", layers, 0, 0);
+        this.world = this.map.createLayer("world", layers, 0, 0);
+        this.above = this.map.createLayer("above", layers, 0, 0);
+        this.world.setCollisionByProperty({collides: true });
+        this.above.setCollisionByProperty({collides: true });
+//         const debugGraphics = this.add.graphics().setAlpha(0.75);
+//         this.world.renderDebug(debugGraphics, {
+//             tileColor: null, // Color of non-colliding tiles
+//             collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
+//             faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
+// });
 
         this.text = this.add.text(10, 10, 'Debug', { font: '16px Courier', fill: '#00ff00' });
         this.text.scrollFactorX = 0;
@@ -90,9 +128,9 @@ export class LobbyScene extends Phaser.Scene {
         this.client.socket = io.connect();
         this.askNewPlayer(300, 300, data.name);
 
-        this.input.on('gameobjectdown', (pointer, object) => {
-            this.onObjectClicked(pointer, object);
-        });
+        // this.input.on('gameobjectdown', (pointer, object) => {
+        //     this.onObjectClicked(pointer, object);
+        // });
 
 
         this.client.socket.on('newplayer', data => {
@@ -165,7 +203,7 @@ export class LobbyScene extends Phaser.Scene {
     update() {
 
         this.playerMovementListener(this.cursors);
-        this.toiletListener();
+        //this.toiletListener();
 
 
         //DEBUG
@@ -190,16 +228,23 @@ export class LobbyScene extends Phaser.Scene {
     }
 
     addNewPlayer(data, scene) {
-        var container = scene.add.container(data.X, data.Y);
+        // var container = scene.add.container(data.X, data.Y);
+        var container = scene.add.container(1693, 500);
+        console.log(container);
         var playerName = scene.add.text(0, 0, data.Name, { font: "20px Luminari", fill: "#ffffff" });
         playerName.setOrigin(0.5, 4);
         var player = scene.physics.add.sprite(0, 0, 'human');
+        player.displayWidth = 48;
+        player.scaleY = player.scaleX;
+        //container.displayWidth = 48;
+        //container.scaleY = container.scaleX;
+        console.log(player);
         //this.players[data.ID] = scene.physics.add.sprite(data.X, data.Y, 'human');
         player.setCollideWorldBounds(true);
         player.setTint(data.Color);
         container.add(player);
         container.add(playerName);
-        container.setSize(85, 100);
+        container.setSize(5, 5);
         scene.physics.world.enable(container);
         container.body.setCollideWorldBounds(true);
         this.players[data.ID] = container;
@@ -217,11 +262,13 @@ export class LobbyScene extends Phaser.Scene {
         //     duration: 1000
         // });
 
-        scene.physics.add.collider(this.players[data.ID], this.toilet);
+        //scene.physics.add.collider(this.players[data.ID], this.toilet);
+        scene.physics.add.collider(this.players[data.ID], this.world);
+        scene.physics.add.collider(this.players[data.ID], this.above);
         //SE DECLENCHE QUAND L'ID DU JOUEUR EST CELUI DE LA SOCKET, DONC C'EST TOI LA DERRIERE L'ECRAN QUI JOUE. PAS LES AUTRES JOUEURS. CA NE DOIT ARRIVER QU'UNE FOIS
         if (data.ID == this.client.socket.id) {
             scene.cameras.main.startFollow(this.players[data.ID], true);
-            this.launchPooChecker();
+            //this.launchPooChecker();
 
         }
 
